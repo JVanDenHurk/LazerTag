@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LazerTag - Welcome</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Welcome to LazerTag</h1>
+            <p>Join the ultimate battle experience. Sign up, play, and lead the board!</p>
+            <a href="{% url 'signup' %}" class="btn-primary">Sign Up Now</a>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <div class="feature">
+                <h2>Real-Time Gameplay</h2>
+                <p>Track kills and points in real-time with QR scanning technology.</p>
+            </div>
+            <div class="feature">
+                <h2>Leaderboards</h2>
+                <p>Compete with players across the world and climb to the top of the leaderboard.</p>
+            </div>
+            <div class="feature">
+                <h2>Fun and Engaging</h2>
+                <p>Bring your friends into the game and enjoy the thrill of LazerTag!</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section class="cta">
+        <div class="container">
+            <h2>Ready to dominate?</h2>
+            <a href="{% url 'signup' %}" class="btn-primary">Get Started</a>
+        </div>
+    </section>
+</body>
+</html>
