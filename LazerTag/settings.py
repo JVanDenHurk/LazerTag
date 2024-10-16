@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-y2x+wpfedv#4yw@4w^+3b984qr@w&a&x0@4#rp*l+t7ls31fs&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
@@ -54,6 +54,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'game',
 ]
+
+AUTH_USER_MODEL = 'game.Player'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        clifford: '#da373d',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 p-4 text-green-400">
+    <header class="w-full max-w-2xl mx-auto mb-8">
+        <nav class="flex justify-between items-center">
+            <h1 class="text-3xl sm:text-4xl font-bold text-center animate-pulse">Leaderboard</h1>
+            <div>
+                <a href="{% url 'account' %}" class="px-4 py-2 bg-green-600 hover:bg-green-500 rounded-md text-white font-semibold transition duration-300">
+                    Account
+                </a>
+            </div>
+        </nav>
+    </header>
+    <main class="container mx-auto max-w-2xl">
+        <div id="scan-status" class="mb-4 p-4 bg-blue-100 text-blue-800 rounded-md hidden"></div>
+        <div class="bg-gray-800 rounded-lg shadow-lg border border-green-500 overflow-hidden mb-4">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-700">
+                        <th class="px-4 py-2 text-left">Rank</th>
+                        <th class="px-4 py-2 text-left">Player</th>
+                        <th class="px-4 py-2 text-right">Kills</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for player in players %}
+                    <tr class="border-b border-gray-700 hover:bg-gray-700 transition-colors duration-200">
+                        <td class="px-4 py-2">{{ forloop.counter }}</td>
+                        <td class="px-4 py-2">{{ player.username }}</td>
+                        <td class="px-4 py-2 text-right">{{ player.points }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="3" class="px-4 py-4 text-center text-gray-400">No players found</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="text-center">
+            <p class="mb-2">Scan a barcode to kill</p>
+            <div id="scannedData" class="text-xl font-bold"></div>
+        </div>
+    </main>
+
+    <script>
+        const scanStatus = document.getElementById('scan-status');
+        const scannedDataElement = document.getElementById('scannedData');
+        let scannedData = '';
+        let scanTimeout;
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key !== 'Enter') {
+                scannedData += event.key;
+                clearTimeout(scanTimeout);
+                scanTimeout = setTimeout(function() {
+                    scannedData = '';
+                }, 50);
+            } else {
+                clearTimeout(scanTimeout);
+                scannedDataElement.innerText = 'Scanned: ' + scannedData;
+                processScannedData(scannedData);
+                scannedData = '';
+            }
+        });
+
+        function processScannedData(data) {
+            scanStatus.textContent = 'Processing scan...';
+            scanStatus.classList.remove('hidden');
+
+            fetch('{% url "scan_qr" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ qr_data: data })
+            })
+            .then(response => response.json())
+            .then(data => {
+                scanStatus.textContent = data.message;
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);  // Reload after 2 seconds to show the message
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                scanStatus.textContent = 'An error occurred while processing the scanned code.';
+            });
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

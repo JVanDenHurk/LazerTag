@@ -8,35 +8,36 @@ class Player(AbstractUser):
     points = models.IntegerField(default=0)
     qr_code = models.ImageField(upload_to='qr_codes/', blank=True)
 
-    # Add unique related_name for groups and user_permissions
+    # Explicitly set related_name to avoid clashes
     groups = models.ManyToManyField(
         'auth.Group',
-        related_name='player_set',  # Avoid conflict with auth.User
-        blank=True
+        verbose_name='groups',
+        blank=True,
+        help_text='The groups this user belongs to. A user will get all permissions granted to each of their groups.',
+        related_name='player_set',
+        related_query_name='player',
     )
     user_permissions = models.ManyToManyField(
         'auth.Permission',
-        related_name='player_set_permissions',  # Avoid conflict with auth.User
-        blank=True
+        verbose_name='user permissions',
+        blank=True,
+        help_text='Specific permissions for this user.',
+        related_name='player_set',
+        related_query_name='player',
     )
 
+    def generate_qr_code(self):
+        if not self.qr_code:
+            qr_content = f'player-{self.id}'
+            qr = qrcode.make(qr_content)
+            qr_io = BytesIO()
+            qr.save(qr_io, format='PNG')
+            qr_file = ContentFile(qr_io.getvalue(), name=f'{self.username}_qr.png')
+            self.qr_code.save(f'{self.username}_qr.png', qr_file, save=False)
+            self.save()
+
     def save(self, *args, **kwargs):
-        # Call the parent class's save method to ensure the Player has an ID
+        is_new = self.pk is None
         super().save(*args, **kwargs)
-
-        # Generate the QR code
-        qr_content = f'player-{self.id}'  # Content for the QR code
-        qr = qrcode.make(qr_content)  # Generate QR code
-
-        # Save the QR code as an image in memory
-        qr_io = BytesIO()
-        qr.save(qr_io, format='PNG')  # Save QR code as PNG in memory
-
-        # Create a Django File object and assign it to qr_code field
-        qr_file = ContentFile(qr_io.getvalue(), name=f'{self.username}_qr.png')
-
-        # Save the generated QR code to the qr_code field
-        self.qr_code.save(f'{self.username}_qr.png', qr_file, save=False)
-
-        # Save the model again to update the qr_code field
-        super().save(*args, **kwargs)
+        if is_new:
+            self.generate_qr_code()
